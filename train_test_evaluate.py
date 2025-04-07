@@ -53,7 +53,7 @@ def calc_wt_accuracy(cf_matrix, weights=[5, 1]):
 
 # -------------------------------------------------------------------------
 def train_test_evaluate(model, logger, trial_folder_path, train_dataloader, test_dataloader, batch_size, learning_rate, num_epochs, device, scheduler_dct, optimizer, class_weights, classifier_type="LSTM"):
-    print(device)
+
     inputs, labels=next(iter(train_dataloader))
     logger.info(f"inputs.shape: {inputs.shape},\tlabels.shape: {labels.shape}")
 

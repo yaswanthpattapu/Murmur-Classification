@@ -7,7 +7,7 @@
         "desc": "Physionet-2022 murmur classification",
         "data_preparation": {
             "train_test_csv_folderpath": "unsynced/data_preparation/k_folds",
-            "k_fold": "fold_04",
+            "k_fold": "fold_05",
             "save_directory": "unsynced/data",
             "chunk_duration": 10,
             "sample_rate_": 4000,
@@ -29,13 +29,13 @@
             }
         },
         "model_training": {
-            "datasets1":["AiSteth", "physionet_2022"], 
-            "datasets2":["physionet_2022"],
+            "datasets2":["AiSteth", "physionet_2022"], 
+            "datasets1":["physionet_2022"],
             "datasets":["AiSteth"],  
             "dir_paths": {
                 "trial_folder_path1": "unsynced/data/base_model_1/results/fold_05_normal_aisteth",
                 "trial_folder_path2": "unsynced/data/wav2vec2-base/results/fold_01_all",
-                "trial_folder_path": "unsynced/data/whisper_small/results/fold_04_aisteth",
+                "trial_folder_path": "unsynced/data/hubert_base/results/fold_05_aisteth",
                 "test": "data_preparation/test"
             },
             "architecture": {

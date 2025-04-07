@@ -64,17 +64,13 @@ def extract_w_features(model, input_tensor, feature_type):
 
 def save_whisper_features(df, device, feature_dir):
     torch_dtype = torch.float32
-
     model_id = "distil-whisper/distil-small.en"
     model = AutoModelForSpeechSeq2Seq.from_pretrained(
         model_id, torch_dtype=torch_dtype, use_safetensors=True
     )
     model.to(device)
     encoder = model.get_encoder()
-
     processor = AutoProcessor.from_pretrained(model_id)
-
-
     for _, row in tqdm(df.iterrows()):
             filepath=row['filepath']
             label=row['label']
@@ -107,6 +103,49 @@ def extract_whisper_features(input_dir, output_dir, device, validation=False):
                 os.makedirs(os.path.join(feature_dir, 'test', str(label)), exist_ok=False)
 
             save_whisper_features(df, device, feature_dir)
+
+
+def save_hubert_features(df, device, feature_dir):
+    torch_dtype = torch.float32
+    model_id = "distil-whisper/distil-small.en"
+    model = AutoModelForSpeechSeq2Seq.from_pretrained(
+        model_id, torch_dtype=torch_dtype, use_safetensors=True
+    )
+    model.to(device)
+    encoder = model.get_encoder()
+    processor = AutoProcessor.from_pretrained(model_id)
+    for _, row in tqdm(df.iterrows()):
+            filepath=row['filepath']
+            label=row['label']
+            set_type, filename=filepath.rsplit('/',2)[-2:]
+            sample, sr=librosa.load(filepath, sr=16000)
+            input_features = processor(sample, sampling_rate = 16000, return_tensors="pt").input_features
+            input_features = input_features.to(device, dtype=torch_dtype)
+            with torch.no_grad():
+                features = encoder(input_features).last_hidden_state
+            torch.save(features, os.path.join(feature_dir, set_type, str(label), filename[:-4]+".pt"))
+
+def extract_hubert_features(input_dir, output_dir, device, validation=False):
+    if validation:
+        dataset = "AiSteth"
+        data_directory = os.path.join(input_dir, dataset)
+        feature_dir = os.path.join(output_dir, dataset)
+        df=pd.read_csv(os.path.join(data_directory, "validation-files.csv"))
+        for label in df['label'].unique():
+            os.makedirs(os.path.join(feature_dir, 'validation', str(label)), exist_ok=False)
+        save_hubert_features(df, device, feature_dir)
+    else:
+        datasets = ["physionet_2022", "AiSteth"]
+        # datasets = ["physionet_2022"]
+        for dataset in datasets:
+            data_directory = os.path.join(input_dir, dataset)
+            feature_dir = os.path.join(output_dir, dataset)
+            df=pd.read_csv(os.path.join(data_directory, "train-test-files.csv"))
+            for label in df['label'].unique():
+                os.makedirs(os.path.join(feature_dir, 'train', str(label)), exist_ok=False)
+                os.makedirs(os.path.join(feature_dir, 'test', str(label)), exist_ok=False)
+
+            save_hubert_features(df, device, feature_dir)
 
 def extract_mel_spectrogram(y, sample_rate, n_mels=200, hop_length=64, n_fft=256):
     mel_spectrogram=librosa.feature.melspectrogram(y=y.numpy(), sr=sample_rate, n_mels=n_mels, hop_length=hop_length, n_fft=n_fft)

@@ -3,7 +3,7 @@ import os
 from data_preparation import create_train_test_data, extract_wav2vec2_features, create_validation_data, extract_mel_spectrogram_features, extract_mfcc_features, extract_whisper_features
 from train_test_evaluate import perform_downstream_task
 from utils.wav2vec2_inference import load_model
-from transformers import Wav2Vec2Model, WhisperFeatureExtractor, WhisperForConditionalGeneration
+from transformers import Wav2Vec2Model, WhisperFeatureExtractor, HubertModel, HubertConfig
 
 
 if __name__ == "__main__":
@@ -41,16 +41,18 @@ if __name__ == "__main__":
 
     print()
     print(f"Loading the base model from {model_path}")
-    base_model = load_model(model_path, config_path, device)
+    # base_model = load_model(model_path, config_path, device)
     # base_model = Wav2Vec2Model.from_pretrained("facebook/wav2vec2-base-960h").to(device)
     # model_path = "unsynced/models/ssamba_base_250.pth"
     model_path = "unsynced/models/base_scratch-audioset-32.74.pth"
     #load model
     # base_model = torch.load(model_path, weights_only=False)
     # base_model = Wav2Vec2BertModel.from_pretrained("hf-audio/wav2vec2-bert-CV16-en")
-    # base_model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-small")
-    #remove last layer
-    # base_model = torch.nn.Sequential(*list(base_model.children())[:-1])
+
+
+    configuration = HubertConfig()
+    base_model = HubertModel(configuration)
+    base_model.to(device)
 
 
 
@@ -60,8 +62,9 @@ if __name__ == "__main__":
     # Extract the features.
     input_dir = os.path.join(save_directory, fold)
     # output_dir = os.path.join(save_directory, "base_model_1", fold)
-    feature_extraction_technique = "wav2vec2-base"
+    # feature_extraction_technique = "wav2vec2-base"
     # feature_extraction_technique = "whisper_small"
+    feature_extraction_technique = "hubert_base"
     output_dir = os.path.join(save_directory, feature_extraction_technique, fold)
 
     print()
@@ -72,7 +75,7 @@ if __name__ == "__main__":
         if feature_extraction_technique == "wav2vec" or feature_extraction_technique == "wav2vec2-base" or feature_extraction_technique == "wav2vec2-base_corrected_sr":
             extract_wav2vec2_features(model=base_model, input_dir = input_dir, output_dir= output_dir, feature_type="transformer", device=device)
             
-        # extract_wav2vec2_features(model=base_model, input_dir = input_dir, output_dir= output_dir, feature_type="transformer", device=device)  
+        extract_wav2vec2_features(model=base_model, input_dir = input_dir, output_dir= output_dir, feature_type="transformer", device=device)  
         extract_whisper_features(input_dir = input_dir, output_dir= output_dir, device=device) 
         # extract_mel_spectrogram_features(input_dir, output_dir, sample_rate)   
         # extract_mfcc_features(input_dir, output_dir, sample_rate)                      
